@@ -1,0 +1,39 @@
+/*
+ * isa_ops.def -- the T13 opcode table, one line per operation.
+ *
+ * This is the single source of truth for the opcode list. The assembler,
+ * the simulator and the viewer all include it through an X-macro:
+ *
+ *     #define OP(code, name, nmodes, ext, ra, rb, flags)  ...
+ *     #include "isa_ops.def"
+ *     #undef OP
+ *
+ * Columns (the three masks have bit m set for MODE m):
+ *   code    value of bits [15:12] of the instruction word
+ *   name    mnemonic of the operation (the disassembler refines SYS, SHIFT
+ *           and JMP into HALT/NOP, SHL/SHR and JEQ/JNE/... per mode)
+ *   nmodes  legal MODE values are 0 .. nmodes-1; anything else is illegal
+ *   ext     modes followed by one 16-bit extension word (EXT)
+ *   ra      modes that read the Ra field; in every other mode Ra must be 0
+ *   rb      modes that read the Rb field; in every other mode Rb must be 0
+ *   flags   1 if the operation updates FLAGS (Z N C)
+ *
+ * Codes 0xE and 0xF are not listed: they are reserved and decode as an
+ * illegal instruction. See docs/isa.md for what every mode does.
+ */
+
+/*  code  name   nmodes  ext   ra    rb    flags */
+OP( 0x0,  SYS,   2,      0x00, 0x00, 0x00, 0 )  /* 0 HALT, 1 NOP                        */
+OP( 0x1,  MOV,   8,      0xEA, 0xFF, 0x3D, 0 )  /* ext: 1,3,5,6,7   rb: 0,2,3,4,5       */
+OP( 0x2,  ADD,   4,      0x0A, 0x0F, 0x0D, 1 )  /* ext: 1,3         rb: 0,2,3           */
+OP( 0x3,  SUB,   4,      0x0A, 0x0F, 0x0D, 1 )
+OP( 0x4,  MUL,   4,      0x0A, 0x0F, 0x0D, 1 )
+OP( 0x5,  DIV,   4,      0x0A, 0x0F, 0x0D, 1 )
+OP( 0x6,  AND,   4,      0x0A, 0x0F, 0x0D, 1 )
+OP( 0x7,  OR,    4,      0x0A, 0x0F, 0x0D, 1 )
+OP( 0x8,  XOR,   4,      0x0A, 0x0F, 0x0D, 1 )
+OP( 0x9,  SHIFT, 4,      0x0A, 0x0F, 0x05, 1 )  /* 0 SHL r,r 1 SHL r,# 2 SHR r,r 3 SHR r,# */
+OP( 0xA,  CMP,   2,      0x02, 0x03, 0x01, 1 )  /* sets flags only, Ra unchanged         */
+OP( 0xB,  JMP,   7,      0x7F, 0x00, 0x00, 0 )  /* 0 always 1 EQ 2 NE 3 LT 4 GE 5 GT 6 LE */
+OP( 0xC,  CALL,  1,      0x01, 0x00, 0x00, 0 )
+OP( 0xD,  RET,   1,      0x00, 0x00, 0x00, 0 )
