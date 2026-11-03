@@ -13,12 +13,12 @@ COMMON_SRC := src/common/isa.c
 COMMON_OBJ := $(COMMON_SRC:%.c=$(BUILD)/%.o)
 
 # Assembler library: every src/asm/*.c except the CLI (main.c).
-ASM_SRC := src/asm/parse.c src/asm/symtab.c src/asm/select.c
+ASM_SRC := src/asm/parse.c src/asm/symtab.c src/asm/select.c src/asm/assemble.c
 ASM_OBJ := $(ASM_SRC:%.c=$(BUILD)/%.o)
 
 HEADERS := include/isa.h include/isa_ops.def src/asm/asm.h
 
-TESTS := $(BUILD)/test_isa $(BUILD)/test_asm
+TESTS := $(BUILD)/test_isa $(BUILD)/test_asm $(BUILD)/test_assemble
 
 .PHONY: all test clean
 
@@ -35,6 +35,10 @@ $(BUILD)/test_isa: tests/test_isa.c $(COMMON_OBJ) $(HEADERS)
 $(BUILD)/test_asm: tests/test_asm.c $(ASM_OBJ) $(COMMON_OBJ) $(HEADERS)
 	@mkdir -p $(dir $@)
 	$(CC) $(CPPFLAGS) $(CFLAGS) tests/test_asm.c $(ASM_OBJ) $(COMMON_OBJ) -o $@
+
+$(BUILD)/test_assemble: tests/test_assemble.c $(ASM_OBJ) $(COMMON_OBJ) $(HEADERS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CPPFLAGS) $(CFLAGS) tests/test_assemble.c $(ASM_OBJ) $(COMMON_OBJ) -o $@
 
 test: $(TESTS)
 	@for t in $(TESTS); do echo "== $$t"; ./$$t || exit 1; done
