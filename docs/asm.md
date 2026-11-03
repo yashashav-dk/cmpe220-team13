@@ -90,7 +90,7 @@ Excerpt from `programs/power.s` below. Every source line appears once, as writte
 ```
 ADDR  WORDS           SOURCE
 0000  1100 0001       main:   MOV R0, #1              ; R0 = result, starts at 1
-000C  A120 0000       loop:   CMP R2, #0              ; done when exponent reaches 0
+000C  A120 0000       loop:   CMP R2, #0              ; done when the exponent reaches 0
 0014  4001                    MUL R0, R1              ; result *= base
 
 SYMBOLS
