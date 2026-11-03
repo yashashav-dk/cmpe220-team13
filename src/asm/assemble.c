@@ -40,14 +40,17 @@ static int ok[ASM_MAX_LINES];
 static void error(asm_unit *u, int line, const char *fmt, ...)
 {
     if (u->nerrors < ASM_MAX_ERRORS) {
-        char *msg = u->errors[u->nerrors];
-        int n = snprintf(msg, ASM_MAX_LINE, "%s:%d: error: ", u->name, line);
+        /* Format into a local buffer: u->name and u->errors live in the
+         * same struct, and gcc rejects snprintf from one into the other. */
+        char msg[ASM_MAX_LINE];
+        int n = snprintf(msg, sizeof msg, "%s:%d: error: ", u->name, line);
         va_list ap;
-        if (n > 0 && n < ASM_MAX_LINE) {
+        if (n > 0 && n < (int)sizeof msg) {
             va_start(ap, fmt);
-            vsnprintf(msg + n, (size_t)(ASM_MAX_LINE - n), fmt, ap);
+            vsnprintf(msg + n, sizeof msg - (size_t)n, fmt, ap);
             va_end(ap);
         }
+        memcpy(u->errors[u->nerrors], msg, sizeof msg);
     }
     u->nerrors++;
 }
