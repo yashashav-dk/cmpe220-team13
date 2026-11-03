@@ -1,0 +1,10 @@
+ADDR  WORDS           SOURCE
+                      ; callret.s -- one CALL and one RET (docs/trace.md, Example 2).
+                              .text
+0000  C000 0006       main:   CALL f
+0004  0000                    HALT
+0006  D000            f:      RET
+
+SYMBOLS
+main         0000
+f            0006
