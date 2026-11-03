@@ -1,6 +1,7 @@
 /*
  * test_assemble.c -- tests for the two-pass assembler (assemble.c):
- * addresses, segments, directives, labels, pseudo-ops, errors and limits.
+ * addresses, segments, directives, labels, pseudo-ops, errors and limits;
+ * and the image and listing writers (image.c, listing.c).
  *
  * Expected words come from the shared codec (see docs/isa.md tables), never
  * typed from memory. Run with `make test` from the repository root (the
@@ -286,6 +287,82 @@ static void test_assemble_file_missing(void)
     CHECK(assemble_file("no/such/file.s", &U) == -1);
 }
 
+/* ---- image.c and listing.c ----------------------------------------------- */
+
+static char outbuf[16384];
+
+/* Run a writer into a temporary file and return what it wrote. */
+static const char *capture(void (*writer)(const asm_unit *, FILE *))
+{
+    FILE *f = tmpfile();
+    size_t n = 0;
+
+    outbuf[0] = '\0';
+    if (f == NULL)
+        return outbuf;
+    writer(&U, f);
+    rewind(f);
+    n = fread(outbuf, 1, sizeof outbuf - 1, f);
+    outbuf[n] = '\0';
+    fclose(f);
+    return outbuf;
+}
+
+/* Same text as tests/golden/halt.img: this test fails on purpose if the
+ * image format changes (docs/image.md). */
+static void test_write_image_halt(void)
+{
+    CHECK(asm_str("main: HALT\n") == 0);
+    CHECK_STR(capture(write_image),
+              "T13IMG 1\n"
+              "ENTRY 0000\n"
+              "SYM main 0000\n"
+              "SEG TEXT 0000\n"
+              "0000: 0000           ; HALT\n");
+}
+
+static void test_write_image_two_segments_and_pseudo(void)
+{
+    CHECK(asm_str("PUSH R1\n.data\nv: .word 1, 2\n.equ K, 3\n") == 0);
+    CHECK_STR(capture(write_image),
+              "T13IMG 1\n"
+              "ENTRY 0000\n"
+              "SYM v 0100\n" /* labels only, not .equ constants */
+              "SEG TEXT 0000\n"
+              "0000: 31E0 0002      ; SUB SP, #2\n"
+              "0004: 14E1           ; MOV [SP], R1\n"
+              "SEG DATA 0100\n"
+              "0100: 0001 0002      ; v\n");
+
+    CHECK(asm_str(".data\nx: .word 9\n") == 0); /* no text: no SEG TEXT line */
+    CHECK_STR(capture(write_image),
+              "T13IMG 1\n"
+              "ENTRY 0000\n"
+              "SYM x 0100\n"
+              "SEG DATA 0100\n"
+              "0100: 0009           ; x\n");
+}
+
+static void test_write_listing_rows(void)
+{
+    CHECK(asm_str("; c\n\nloop:\n  PUSH R1   ; p\n.data\nw: .word 1,2,3,4\n.equ K, 0x10\n") == 0);
+    CHECK_STR(capture(write_listing),
+              "ADDR  WORDS           SOURCE\n"
+              "                      ; c\n"
+              "\n"
+              "0000                  loop:\n"
+              "0000  31E0 0002 14E1    PUSH R1   ; p\n"
+              "                      .data\n"
+              "0100  0001 0002 0003  w: .word 1,2,3,4\n"
+              "0106  0004\n"
+              "                      .equ K, 0x10\n"
+              "\n"
+              "SYMBOLS\n"
+              "loop         0000\n"
+              "w            0100\n"
+              "K            0010\n");
+}
+
 int main(void)
 {
     test_halt();
@@ -301,6 +378,9 @@ int main(void)
     test_crlf_and_no_final_newline();
     test_reports_all_errors();
     test_assemble_file_missing();
+    test_write_image_halt();
+    test_write_image_two_segments_and_pseudo();
+    test_write_listing_rows();
 
     printf("%d checks, %d failed\n", checks, failures);
     return failures ? 1 : 0;
