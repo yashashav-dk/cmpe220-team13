@@ -363,6 +363,67 @@ static void test_write_listing_rows(void)
               "K            0010\n");
 }
 
+/* ---- reading source files (final review fixes) ---------------------------- */
+
+#define TMP_SOURCE "t13as_test_tmp.s" /* written in the current directory, removed after */
+
+static int write_tmp(const char *data, size_t n)
+{
+    FILE *f = fopen(TMP_SOURCE, "wb");
+    if (f == NULL)
+        return 0;
+    fwrite(data, 1, n, f);
+    fclose(f);
+    return 1;
+}
+
+/* Tab-completing `programs` instead of `programs/power.s` must not
+ * "assemble" an empty program. */
+static void test_assemble_file_directory(void)
+{
+    CHECK(assemble_file("programs", &U) == -1);
+}
+
+/* A NUL byte would silently cut the source short. */
+static void test_assemble_file_nul_byte(void)
+{
+    static const char data[] = "NOP\n\0HALT\nJMP nowhere\n";
+    CHECK(write_tmp(data, sizeof data - 1));
+    CHECK(assemble_file(TMP_SOURCE, &U) == 1);
+    CHECK_STR(U.errors[0], TMP_SOURCE ":2: error: NUL byte in source (is this a binary file?)");
+    remove(TMP_SOURCE);
+}
+
+/* More text than the reader holds must be an error, not dropped lines. */
+static void test_assemble_file_too_large(void)
+{
+    static char data[ASM_MAX_LINES * (ASM_MAX_LINE + 1) + 16];
+    size_t n = 0;
+    int i;
+
+    for (i = 0; i < ASM_MAX_LINES; i++) { /* 1024 lines of 255 chars, CRLF */
+        data[n++] = ';';
+        memset(data + n, 'x', ASM_MAX_LINE - 2);
+        n += ASM_MAX_LINE - 2;
+        data[n++] = '\r';
+        data[n++] = '\n';
+    }
+    memcpy(data + n, "HALT\n", 5);
+    n += 5;
+    CHECK(write_tmp(data, n));
+    CHECK(assemble_file(TMP_SOURCE, &U) >= 1);
+    CHECK(U.nerrors >= 1 && strstr(U.errors[0], "error: source file too large") != NULL);
+    remove(TMP_SOURCE);
+}
+
+/* Windows editors may start a UTF-8 file with a byte-order mark. */
+static void test_utf8_bom_is_skipped(void)
+{
+    CHECK(asm_str("\xEF\xBB\xBF.text\nmain: HALT\n") == 0);
+    CHECK(U.nchunks == 1 && words_at(0x0000, 1, 0x0000, 0));
+    CHECK_STR(U.src[0], ".text");
+}
+
 int main(void)
 {
     test_halt();
@@ -381,6 +442,10 @@ int main(void)
     test_write_image_halt();
     test_write_image_two_segments_and_pseudo();
     test_write_listing_rows();
+    test_assemble_file_directory();
+    test_assemble_file_nul_byte();
+    test_assemble_file_too_large();
+    test_utf8_bom_is_skipped();
 
     printf("%d checks, %d failed\n", checks, failures);
     return failures ? 1 : 0;

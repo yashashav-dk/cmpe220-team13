@@ -404,12 +404,21 @@ static void pass2(asm_unit *u)
 
 /* ---- entry points ---------------------------------------------------------- */
 
-int assemble_text(const char *name, const char *text, asm_unit *u)
+static void start_unit(const char *name, asm_unit *u)
 {
     memset(u, 0, sizeof *u);
     memset(ok, 0, sizeof ok);
     snprintf(u->name, sizeof u->name, "%s", name);
     symtab_init(&u->syms);
+}
+
+int assemble_text(const char *name, const char *text, asm_unit *u)
+{
+    start_unit(name, u);
+
+    /* Windows editors may start a UTF-8 file with a byte-order mark. */
+    if ((unsigned char)text[0] == 0xEF && (unsigned char)text[1] == 0xBB && (unsigned char)text[2] == 0xBF)
+        text += 3;
 
     split_lines(u, text);
     pass1(u);
@@ -420,14 +429,37 @@ int assemble_text(const char *name, const char *text, asm_unit *u)
 
 int assemble_file(const char *path, asm_unit *u)
 {
+    /* Room for ASM_MAX_LINES full lines with CRLF endings. */
     static char text[ASM_MAX_LINES * (ASM_MAX_LINE + 1) + 1];
     FILE *f = fopen(path, "rb");
-    size_t n;
+    size_t n, i;
+    int more, line = 1;
 
     if (f == NULL)
         return -1;
     n = fread(text, 1, sizeof text - 1, f);
+    if (ferror(f)) { /* e.g. the path is a directory */
+        fclose(f);
+        return -1;
+    }
+    more = (fgetc(f) != EOF);
     fclose(f);
     text[n] = '\0';
+
+    /* Refuse input that would otherwise be cut short without a word. */
+    for (i = 0; i < n; i++) {
+        if (text[i] == '\0') {
+            start_unit(path, u);
+            error(u, line, "NUL byte in source (is this a binary file?)");
+            return u->nerrors;
+        }
+        if (text[i] == '\n')
+            line++;
+    }
+    if (more) {
+        start_unit(path, u);
+        error(u, line, "source file too large (max %lu bytes)", (unsigned long)(sizeof text - 1));
+        return u->nerrors;
+    }
     return assemble_text(path, text, u);
 }
