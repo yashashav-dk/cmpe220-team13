@@ -1,6 +1,6 @@
 /*
  * test_asm.c -- unit tests for the assembler front end:
- * parse.c (numbers, registers, lines, operands) and symtab.c.
+ * parse.c (numbers, registers, lines, operands), symtab.c and select.c.
  *
  * Same plain-C style as test_isa.c. Run with `make test`.
  */
@@ -270,6 +270,198 @@ static void test_symtab(void)
     CHECK(t.count == ASM_MAX_SYMS);
 }
 
+/* ---- select.c ---------------------------------------------------------- */
+
+/* parse_line + select_insns; returns the instruction count or -1. */
+static int sel(const char *line, isa_insn out[2])
+{
+    if (PARSE(line) != 1) {
+        printf("  (line '%s' did not parse: %s)\n", line, err);
+        return -1;
+    }
+    return select_insns(&S, out, err, sizeof err);
+}
+
+static int fields_are(const isa_insn *in, unsigned op, unsigned mode, unsigned ra, unsigned rb, unsigned ext)
+{
+    return in->op == op && in->mode == mode && in->ra == ra && in->rb == rb && in->ext == ext;
+}
+
+/* One case per row of docs/isa.md Tables 1, 3 and 4 (and every ALU op). */
+static void test_select_table(void)
+{
+    static const struct {
+        const char *line;
+        unsigned op, mode, ra, rb, ext;
+    } rows[] = {
+        {"HALT", OP_SYS, SYS_HALT, 0, 0, 0},
+        {"NOP", OP_SYS, SYS_NOP, 0, 0, 0},
+        {"MOV R1, R2", OP_MOV, 0, 1, 2, 0},
+        {"MOV R1, #5", OP_MOV, 1, 1, 0, 5},
+        {"MOV R0, [R2]", OP_MOV, 2, 0, 2, 0},
+        {"MOV R3, [FP+4]", OP_MOV, 3, 3, 13, 4},
+        {"MOV [SP], R1", OP_MOV, 4, 14, 1, 0},
+        {"MOV [FP+6], R0", OP_MOV, 5, 13, 0, 6},
+        {"MOV R0, [0x0100]", OP_MOV, 6, 0, 0, 0x100},
+        {"MOV [0x0102], R5", OP_MOV, 7, 5, 0, 0x102},
+        {"ADD R1, R2", OP_ADD, 0, 1, 2, 0},
+        {"ADD R1, #1", OP_ADD, 1, 1, 0, 1},
+        {"ADD R0, [R2]", OP_ADD, 2, 0, 2, 0},
+        {"ADD R0, [FP+4]", OP_ADD, 3, 0, 13, 4},
+        {"SUB SP, #2", OP_SUB, 1, 14, 0, 2},
+        {"MUL R0, [R2]", OP_MUL, 2, 0, 2, 0},
+        {"DIV R0, #2", OP_DIV, 1, 0, 0, 2},
+        {"AND R1, #255", OP_AND, 1, 1, 0, 255},
+        {"OR R1, R2", OP_OR, 0, 1, 2, 0},
+        {"XOR R1, [R3+2]", OP_XOR, 3, 1, 3, 2},
+        {"SHL R1, R2", OP_SHIFT, SHIFT_SHL_R, 1, 2, 0},
+        {"SHL R1, #1", OP_SHIFT, SHIFT_SHL_I, 1, 0, 1},
+        {"SHR R1, R2", OP_SHIFT, SHIFT_SHR_R, 1, 2, 0},
+        {"SHR R1, #3", OP_SHIFT, SHIFT_SHR_I, 1, 0, 3},
+        {"CMP R1, R2", OP_CMP, 0, 1, 2, 0},
+        {"CMP R1, #0", OP_CMP, 1, 1, 0, 0},
+        {"JMP 0x0010", OP_JMP, JMP_ALWAYS, 0, 0, 0x10},
+        {"JEQ 0x0010", OP_JMP, JMP_EQ, 0, 0, 0x10},
+        {"JNE 0x0010", OP_JMP, JMP_NE, 0, 0, 0x10},
+        {"JLT 0x0010", OP_JMP, JMP_LT, 0, 0, 0x10},
+        {"JGE 0x0010", OP_JMP, JMP_GE, 0, 0, 0x10},
+        {"JGT 0x0010", OP_JMP, JMP_GT, 0, 0, 0x10},
+        {"JLE 0x0010", OP_JMP, JMP_LE, 0, 0, 0x10},
+        {"CALL 0x0040", OP_CALL, 0, 0, 0, 0x40},
+        {"RET", OP_RET, 0, 0, 0, 0},
+        {"jle loop", OP_JMP, JMP_LE, 0, 0, 0},           /* symbol: value 0 until pass 2 */
+        {"MOV R3, [FP+ARG]", OP_MOV, 3, 3, 13, 0},
+    };
+    size_t i;
+    isa_insn out[2];
+
+    for (i = 0; i < sizeof rows / sizeof rows[0]; i++) {
+        int n = sel(rows[i].line, out);
+        CHECK(n == 1);
+        if (n == 1 && !fields_are(&out[0], rows[i].op, rows[i].mode, rows[i].ra, rows[i].rb, rows[i].ext)) {
+            CHECK(!"fields");
+            printf("  '%s' -> op %u mode %u ra %u rb %u ext 0x%04X\n", rows[i].line, (unsigned)out[0].op,
+                   (unsigned)out[0].mode, (unsigned)out[0].ra, (unsigned)out[0].rb, (unsigned)out[0].ext);
+        }
+    }
+}
+
+static void test_select_pseudo(void)
+{
+    isa_insn out[2];
+
+    CHECK(sel("NOT R1", out) == 1);
+    CHECK(fields_are(&out[0], OP_XOR, 1, 1, 0, 0xFFFF));
+
+    CHECK(sel("PUSH R1", out) == 2);
+    CHECK(fields_are(&out[0], OP_SUB, 1, REG_SP, 0, 2));
+    CHECK(fields_are(&out[1], OP_MOV, 4, REG_SP, 1, 0));
+
+    CHECK(sel("POP R3", out) == 2);
+    CHECK(fields_are(&out[0], OP_MOV, 2, 3, REG_SP, 0));
+    CHECK(fields_are(&out[1], OP_ADD, 1, REG_SP, 0, 2));
+
+    CHECK(sel("push fp", out) == 2);
+    CHECK(fields_are(&out[1], OP_MOV, 4, REG_SP, REG_FP, 0));
+}
+
+static void expect_select_error(const char *line, const char *message)
+{
+    isa_insn out[2];
+    int n = sel(line, out);
+    CHECK(n == -1);
+    if (n == -1)
+        CHECK_STR(err, message);
+    else
+        printf("  (line '%s' selected but should not)\n", line);
+}
+
+static void test_select_errors(void)
+{
+    expect_select_error("MOVE R1, R2", "unknown mnemonic 'MOVE'");
+    expect_select_error("ADD #1, R1", "bad operands for 'ADD'");
+    expect_select_error("MOV [R1], #5", "bad operands for 'MOV'");
+    expect_select_error("JMP R1", "bad operands for 'JMP'");
+    expect_select_error("HALT R1", "bad operands for 'HALT'");
+    expect_select_error("RET 0", "bad operands for 'RET'");
+    expect_select_error("CMP R1, 5", "bad operands for 'CMP'");
+    expect_select_error("SHL R1, [R2]", "bad operands for 'SHL'");
+    expect_select_error("PUSH #1", "bad operands for 'PUSH'");
+    expect_select_error("NOT", "bad operands for 'NOT'");
+    expect_select_error("ADD R1", "bad operands for 'ADD'");
+    expect_select_error("ADD R1, R2, R3", "bad operands for 'ADD'");
+    expect_select_error(".word 1", "unknown mnemonic '.WORD'");
+}
+
+static void test_select_is_mnemonic(void)
+{
+    CHECK(select_is_mnemonic("ADD") == 1);
+    CHECK(select_is_mnemonic("JEQ") == 1);
+    CHECK(select_is_mnemonic("PUSH") == 1);
+    CHECK(select_is_mnemonic("HALT") == 1);
+    CHECK(select_is_mnemonic("SHIFT") == 0); /* the op name, not a mnemonic */
+    CHECK(select_is_mnemonic("LOOP") == 0);
+    CHECK(select_is_mnemonic(".WORD") == 0);
+}
+
+/*
+ * The property: everything isa_disasm() prints assembles back to the same
+ * instruction. Covers all 53 legal (op, mode) pairs, twice: once with
+ * R7/R11, once with FP/SP so the register aliases are exercised.
+ */
+static void test_disasm_round_trip_all(void)
+{
+    static const uint8_t regs[2][2] = {{7, 11}, {REG_FP, REG_SP}};
+    unsigned op, m, pass;
+    int legal = 0;
+
+    for (pass = 0; pass < 2; pass++) {
+        for (op = 0; op < 16; op++) {
+            for (m = 0; m < 16; m++) {
+                isa_insn in, out[2];
+                uint8_t a[4], b[4];
+                size_t alen = 0, blen = 0;
+                char text[64];
+                int ext = isa_needs_ext(op, m);
+
+                if (ext < 0)
+                    continue;
+                if (pass == 0)
+                    legal++;
+
+                memset(&in, 0, sizeof in);
+                in.op = (uint8_t)op;
+                in.mode = (uint8_t)m;
+                in.ra = regs[pass][0];
+                in.ext = (uint16_t)(ext ? 0x0102 : 0);
+                if (isa_encode(&in, a, sizeof a, &alen) == ISA_ERR_FIELD)
+                    in.ra = 0;
+                in.rb = regs[pass][1];
+                if (isa_encode(&in, a, sizeof a, &alen) == ISA_ERR_FIELD)
+                    in.rb = 0;
+                CHECK(isa_encode(&in, a, sizeof a, &alen) == ISA_OK);
+                in.has_ext = (uint8_t)ext;
+                isa_disasm(&in, text, sizeof text);
+
+                if (sel(text, out) != 1) {
+                    CHECK(!"round trip selects one instruction");
+                    printf("  '%s': %s\n", text, err);
+                    continue;
+                }
+                CHECK(fields_are(&out[0], in.op, in.mode, in.ra, in.rb, in.ext));
+                CHECK(isa_encode(&out[0], b, sizeof b, &blen) == ISA_OK);
+                CHECK(alen == blen && memcmp(a, b, alen) == 0);
+            }
+        }
+    }
+    CHECK(legal == 2 + 8 + 28 + 4 + 2 + 7 + 1 + 1);
+
+    {   /* what the disassembler prints for NOT */
+        isa_insn out[2];
+        CHECK(sel("XOR R1, #65535", out) == 1 && out[0].ext == 0xFFFF);
+    }
+}
+
 int main(void)
 {
     test_parse_number();
@@ -281,6 +473,11 @@ int main(void)
     test_parse_directives();
     test_parse_errors();
     test_symtab();
+    test_select_table();
+    test_select_pseudo();
+    test_select_errors();
+    test_select_is_mnemonic();
+    test_disasm_round_trip_all();
 
     printf("%d checks, %d failed\n", checks, failures);
     return failures ? 1 : 0;

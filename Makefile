@@ -13,7 +13,7 @@ COMMON_SRC := src/common/isa.c
 COMMON_OBJ := $(COMMON_SRC:%.c=$(BUILD)/%.o)
 
 # Assembler library: every src/asm/*.c except the CLI (main.c).
-ASM_SRC := src/asm/parse.c src/asm/symtab.c
+ASM_SRC := src/asm/parse.c src/asm/symtab.c src/asm/select.c
 ASM_OBJ := $(ASM_SRC:%.c=$(BUILD)/%.o)
 
 HEADERS := include/isa.h include/isa_ops.def src/asm/asm.h
