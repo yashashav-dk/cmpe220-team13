@@ -19,10 +19,13 @@ make test
 
 Expected last line: `561 checks, 0 failed`.
 
+CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs `make` and `make test` on every pull request and every push to `main`, on Linux with gcc and clang and on macOS with clang.
+
 ## Layout
 
 ```
 docs/isa.md          ISA specification: encoding tables, execution rules, memory map
+docs/trace.md        execution trace format: what t13sim writes and t13view reads
 include/isa_ops.def  opcode table, one line per operation (X-macro)
 include/isa.h        codec API shared by all three tools
 src/common/isa.c     codec implementation
@@ -32,6 +35,8 @@ src/view/            t13view (Manoj)       planned
 programs/            example programs, .s and .c   planned
 report/              report sources                planned
 tests/               unit tests
+tests/golden/        expected outputs, including sample traces (halt.trc, power.trc)
+.github/workflows/   CI
 ```
 
 The `Makefile` is a placeholder that builds the codec and its tests. It will be replaced when the full build and CI are set up.
