@@ -1,0 +1,64 @@
+name: Extended checks
+
+# Portability and memory-safety checks beyond ci.yml. They are informational:
+# the rules for main require only the Linux jobs of ci.yml, so a red job here
+# flags a problem without blocking a merge. See CONTRIBUTING.md.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: extended-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  sanitizers:
+    name: sanitizers / clang ASan+UBSan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build and test with AddressSanitizer and UndefinedBehaviorSanitizer
+        run: >
+          make test CC=clang
+          CFLAGS="-std=c99 -Wall -Wextra -Wpedantic -Werror -O1 -g
+          -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=all"
+
+  windows:
+    name: windows / gcc (MSYS2 UCRT64)
+    runs-on: windows-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: false
+          install: make diffutils mingw-w64-ucrt-x86_64-gcc
+      - name: Compiler
+        run: gcc --version
+      - name: Build
+        run: make CC=gcc
+      - name: Test
+        run: make test CC=gcc
+
+  alpine:
+    name: alpine / gcc (musl, busybox sh)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      # The same command CONTRIBUTING.md gives for any machine with Docker.
+      - name: Build and test in alpine:3.20
+        run: >
+          docker run --rm -v "$PWD":/src:ro alpine:3.20 sh -c
+          'apk add --no-cache build-base >/dev/null && cp -r /src /w && cd /w && make test CC=gcc'
