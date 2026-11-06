@@ -26,8 +26,12 @@ static void row(FILE *out, int addr, const uint16_t *w, int nw, const char *src)
     int k;
 
     words[0] = '\0';
-    for (k = 0; k < nw; k++)
-        used += (size_t)snprintf(words + used, sizeof words - used, k ? " %04X" : "%04X", (unsigned)w[k]);
+    for (k = 0; k < nw; k++) {
+        int n = snprintf(words + used, sizeof words - used, k ? " %04X" : "%04X", (unsigned)w[k]);
+        if (n < 0 || (size_t)n >= sizeof words - used)
+            break; /* cannot happen for 3 words of 4 hex digits; never step past the buffer */
+        used += (size_t)n;
+    }
 
     if (addr >= 0)
         snprintf(line, sizeof line, "%04X  %-14s  %s", (unsigned)addr, words, src);
