@@ -31,9 +31,11 @@ static void default_image_name(const char *src, char *out, size_t cap)
         snprintf(out, cap, "%s.img", src);
 }
 
+/* Binary mode: the image and listing are LF text on every OS (docs/image.md);
+ * text mode on Windows would turn each "\n" into CR LF. */
 static int write_file(const char *path, void (*writer)(const asm_unit *, FILE *))
 {
-    FILE *f = fopen(path, "w");
+    FILE *f = fopen(path, "wb");
 
     if (f == NULL) {
         fprintf(stderr, "t13as: cannot write %s\n", path);
