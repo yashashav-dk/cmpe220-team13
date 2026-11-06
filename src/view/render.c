@@ -150,19 +150,37 @@ static uint16_t code_end(const vw_trace *t)
     return (uint16_t)(end > VW_DATA_BASE ? VW_DATA_BASE : end);
 }
 
-/* Nearest symbol at or below addr inside Text, as "name" or "name+hh". */
+/* 1 if addr is a function: the entry point or the target of a CALL. */
+static int is_function(const vw_trace *t, uint16_t addr)
+{
+    unsigned k;
+
+    if (addr == t->entry)
+        return 1;
+    for (k = 0; k < t->nsteps; k++)
+        if (t->step[k].ir == 0xC000 && t->step[k].ext == addr)
+            return 1;
+    return 0;
+}
+
+/* Code address as "function+hh": the nearest function symbol at or below
+ * addr (any Text symbol if the trace has no function symbols). Used to
+ * show where a return address points. */
 static void code_ref(const vw_trace *t, uint16_t addr, char *buf, size_t cap)
 {
     const vw_sym *best = NULL;
     unsigned i;
+    int pass;
 
     buf[0] = '\0';
     if (addr >= VW_DATA_BASE)
         return;
-    for (i = 0; i < t->nsym; i++)
-        if (t->sym[i].addr <= addr && t->sym[i].addr < VW_DATA_BASE &&
-            (best == NULL || t->sym[i].addr > best->addr))
-            best = &t->sym[i];
+    for (pass = 0; pass < 2 && best == NULL; pass++)
+        for (i = 0; i < t->nsym; i++)
+            if (t->sym[i].addr <= addr && t->sym[i].addr < VW_DATA_BASE &&
+                (pass == 1 || is_function(t, t->sym[i].addr)) &&
+                (best == NULL || t->sym[i].addr > best->addr))
+                best = &t->sym[i];
     if (best == NULL)
         return;
     if (best->addr == addr)
@@ -647,10 +665,12 @@ static void layout(const vw_trace *t, seg_layout *L)
     }
 }
 
+/* Snapshot idx after step k (0: after loading). Cells that differ from the
+ * previous snapshot (after step prev_k, memory prev) are marked. */
 static void snapshot(const vw_trace *t, FILE *out, vw_format fmt, const seg_layout *L, unsigned idx, unsigned k,
-                     const uint8_t *mem, const uint8_t *prev)
+                     unsigned prev_k, const uint8_t *mem, const uint8_t *prev)
 {
-    const vw_state *st = state_at(t, k);
+    const vw_state *st = state_at(t, k), *ps = state_at(t, prev_k);
     char ev[64] = "", ref[48];
     line_buf lb = {{0}, 0};
     unsigned i, r;
@@ -667,9 +687,10 @@ static void snapshot(const vw_trace *t, FILE *out, vw_format fmt, const seg_layo
         fprintf(out, "<tr><td>PC</td><td>%04X</td></tr>\n", (unsigned)(k == 0 ? t->entry : (k < t->nsteps ? t->step[k].pc : t->end_pc)));
         for (r = 0; r < 4; r++)
             fprintf(out, "<tr><td>%s</td><td%s>%04X</td></tr>\n", REG_NAMES[r],
-                    k && st->reg[r] != state_at(t, k - 1)->reg[r] ? " class=\"chg\"" : "", (unsigned)st->reg[r]);
-        fprintf(out, "<tr><td>FP</td><td>%04X</td></tr>\n<tr><td>SP</td><td>%04X</td></tr>\n</tbody></table>\n",
-                (unsigned)fp, (unsigned)sp);
+                    st->reg[r] != ps->reg[r] ? " class=\"chg\"" : "", (unsigned)st->reg[r]);
+        fprintf(out, "<tr><td>FP</td><td%s>%04X</td></tr>\n<tr><td>SP</td><td%s>%04X</td></tr>\n</tbody></table>\n",
+                fp != ps->reg[REG_FP] ? " class=\"chg\"" : "", (unsigned)fp,
+                sp != ps->reg[REG_SP] ? " class=\"chg\"" : "", (unsigned)sp);
         /* Text, Data, Heap */
         fputs("<table class=\"t13 segtab\"><thead><tr><th>Seg</th><th>Addr</th><th>Label</th><th>Value</th></tr>"
               "</thead><tbody>\n",
@@ -799,20 +820,21 @@ void vw_segments(const vw_trace *t, FILE *out, vw_format fmt)
 {
     static uint8_t mem[VW_MEM_SIZE], prev[VW_MEM_SIZE];
     seg_layout L;
-    unsigned k, idx = 0;
+    unsigned k, idx = 0, prev_k = 0;
 
     layout(t, &L);
     memcpy(mem, t->mem0, sizeof mem);
     memcpy(prev, mem, sizeof prev);
-    snapshot(t, out, fmt, &L, idx++, 0, mem, prev);
+    snapshot(t, out, fmt, &L, idx++, 0, 0, mem, prev);
     for (k = 1; k <= t->nsteps; k++) {
         apply_step(t, k, mem);
         if (!is_snapshot(&t->step[k - 1]))
             continue;
         if (fmt != VW_HTML)
             fputc('\n', out);
-        snapshot(t, out, fmt, &L, idx++, k, mem, prev);
+        snapshot(t, out, fmt, &L, idx++, k, prev_k, mem, prev);
         memcpy(prev, mem, sizeof prev);
+        prev_k = k;
     }
 }
 
