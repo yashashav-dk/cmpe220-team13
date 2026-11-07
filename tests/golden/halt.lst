@@ -1,0 +1,7 @@
+ADDR  WORDS           SOURCE
+                      ; halt.s -- the smallest program: one instruction. Loader and viewer fixture.
+                              .text
+0000  0000            main:   HALT
+
+SYMBOLS
+main         0000
