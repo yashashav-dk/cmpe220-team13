@@ -1,0 +1,29 @@
+<svg viewBox="0 0 860 215" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="instruction word">
+<defs>
+<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0,0 L10,5 L0,10 z" fill="#1b1f24"/></marker>
+<marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0,0 L10,5 L0,10 z" fill="#0b5cad"/></marker>
+<marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0,0 L10,5 L0,10 z" fill="#8a6d00"/></marker>
+</defs>
+<style>
+.box{fill:#fff;stroke:#1b1f24;stroke-width:1.4}
+.cpu{fill:#f7f9fb;stroke:#1b1f24;stroke-width:1.6}
+.t{font-size:12px;fill:#1b1f24}
+.tb{font-size:13px;font-weight:bold;fill:#1b1f24}
+.ts{font-size:10.5px;fill:#57606a}
+.mono{font-family:Menlo,monospace}
+.w{stroke:#1b1f24;stroke-width:1.5;fill:none}
+.d{stroke:#0b5cad;stroke-width:1.5;fill:none}
+.c{stroke:#8a6d00;stroke-width:1.2;fill:none;stroke-dasharray:5 3}
+.lab{font-size:10.5px;fill:#0b5cad}
+.labc{font-size:10.5px;fill:#8a6d00}
+</style>
+<rect x="60" y="40" width="180" height="46" fill="#e3ecfd" stroke="#1b1f24" stroke-width="1.4"/><text x="150" y="30" text-anchor="middle" class="ts mono">bits 15–12</text><text x="150" y="69" text-anchor="middle" class="tb">OP</text><text x="150" y="108" text-anchor="middle" class="t mono">0010</text><text x="150" y="126" text-anchor="middle" class="ts">2 = ADD</text><rect x="240" y="40" width="180" height="46" fill="#fdf2d6" stroke="#1b1f24" stroke-width="1.4"/><text x="330" y="30" text-anchor="middle" class="ts mono">bits 11–8</text><text x="330" y="69" text-anchor="middle" class="tb">MODE</text><text x="330" y="108" text-anchor="middle" class="t mono">0000</text><text x="330" y="126" text-anchor="middle" class="ts">0 = Ra, Rb</text><rect x="420" y="40" width="180" height="46" fill="#e2f3e6" stroke="#1b1f24" stroke-width="1.4"/><text x="510" y="30" text-anchor="middle" class="ts mono">bits 7–4</text><text x="510" y="69" text-anchor="middle" class="tb">Ra</text><text x="510" y="108" text-anchor="middle" class="t mono">0001</text><text x="510" y="126" text-anchor="middle" class="ts">R1</text><rect x="600" y="40" width="180" height="46" fill="#fbe4e1" stroke="#1b1f24" stroke-width="1.4"/><text x="690" y="30" text-anchor="middle" class="ts mono">bits 3–0</text><text x="690" y="69" text-anchor="middle" class="tb">Rb</text><text x="690" y="108" text-anchor="middle" class="t mono">0010</text><text x="690" y="126" text-anchor="middle" class="ts">R2</text>
+<rect x="60" y="150" width="720" height="34" fill="#f6f8fa" stroke="#1b1f24" stroke-dasharray="5 3"/>
+<text x="420" y="172" text-anchor="middle" class="t">EXT word (16 bits) at address + 2, only in modes with a constant, offset or address</text>
+<text x="800" y="69" class="tb mono">= 2012</text>
+<text x="800" y="108" class="ts">ADD R1, R2</text>
+<text x="420" y="206" text-anchor="middle" class="ts">OP + MODE = the 8-bit opcode of the class design; each field is one hex digit, so a dump decodes by eye</text>
+</svg>

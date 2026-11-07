@@ -1,0 +1,31 @@
+<svg viewBox="0 0 860 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="stack frame">
+<defs>
+<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0,0 L10,5 L0,10 z" fill="#1b1f24"/></marker>
+<marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0,0 L10,5 L0,10 z" fill="#0b5cad"/></marker>
+<marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0,0 L10,5 L0,10 z" fill="#8a6d00"/></marker>
+</defs>
+<style>
+.box{fill:#fff;stroke:#1b1f24;stroke-width:1.4}
+.cpu{fill:#f7f9fb;stroke:#1b1f24;stroke-width:1.6}
+.t{font-size:12px;fill:#1b1f24}
+.tb{font-size:13px;font-weight:bold;fill:#1b1f24}
+.ts{font-size:10.5px;fill:#57606a}
+.mono{font-family:Menlo,monospace}
+.w{stroke:#1b1f24;stroke-width:1.5;fill:none}
+.d{stroke:#0b5cad;stroke-width:1.5;fill:none}
+.c{stroke:#8a6d00;stroke-width:1.2;fill:none;stroke-dasharray:5 3}
+.lab{font-size:10.5px;fill:#0b5cad}
+.labc{font-size:10.5px;fill:#8a6d00}
+</style>
+<text x="330" y="40" text-anchor="middle" class="ts">higher addresses: the caller's frame</text>
+<rect x="200" y="60" width="260" height="40" fill="#fbe4e1" stroke="#1b1f24" stroke-width="1.4"/><text x="190" y="85" text-anchor="end" class="t mono">FP+6</text><text x="215" y="85" class="tb mono">RETV</text><text x="300" y="85" class="t">return value</text><text x="475" y="85" class="ts">callee writes it</text><rect x="200" y="100" width="260" height="40" fill="#fbe4e1" stroke="#1b1f24" stroke-width="1.4"/><text x="190" y="125" text-anchor="end" class="t mono">FP+4</text><text x="215" y="125" class="tb mono">ARG</text><text x="300" y="125" class="t">argument k</text><text x="475" y="125" class="ts">caller: PUSH</text><rect x="200" y="140" width="260" height="40" fill="#fbe4e1" stroke="#1b1f24" stroke-width="1.4"/><text x="190" y="165" text-anchor="end" class="t mono">FP+2</text><text x="215" y="165" class="tb mono">RA</text><text x="300" y="165" class="t">return address</text><text x="475" y="165" class="ts">CALL pushes it</text><rect x="200" y="180" width="260" height="40" fill="#fbe4e1" stroke="#1b1f24" stroke-width="1.4"/><text x="190" y="205" text-anchor="end" class="t mono">FP+0</text><text x="215" y="205" class="tb mono">OLDFP</text><text x="300" y="205" class="t">caller's FP</text><text x="475" y="205" class="ts">callee: PUSH FP</text>
+<path d="M120,240 H196" class="w" marker-end="url(#ar)"/><text x="40" y="244" class="tb">FP, SP</text>
+<text x="330" y="270" text-anchor="middle" class="ts">lower addresses: the next call's frame (8 bytes lower)</text>
+<path d="M640,60 V220" class="w" marker-start="url(#ar)" marker-end="url(#ar)"/>
+<text x="652" y="135" class="t">4 words = 8 bytes</text>
+<text x="652" y="152" class="ts">8-byte aligned (SP starts at 0400)</text>
+<text x="652" y="169" class="ts">so a 4-word dump row = 1 frame</text>
+</svg>

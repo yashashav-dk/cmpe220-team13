@@ -1,0 +1,136 @@
+<svg viewBox="0 0 1000 610" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="T13 CPU diagram">
+<defs>
+<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0,0 L10,5 L0,10 z" fill="#1b1f24"/></marker>
+<marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0,0 L10,5 L0,10 z" fill="#0b5cad"/></marker>
+<marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0,0 L10,5 L0,10 z" fill="#8a6d00"/></marker>
+</defs>
+<style>
+.box{fill:#fff;stroke:#1b1f24;stroke-width:1.4}
+.cpu{fill:#f7f9fb;stroke:#1b1f24;stroke-width:1.6}
+.t{font-size:12px;fill:#1b1f24}
+.tb{font-size:13px;font-weight:bold;fill:#1b1f24}
+.ts{font-size:10.5px;fill:#57606a}
+.mono{font-family:Menlo,monospace}
+.w{stroke:#1b1f24;stroke-width:1.5;fill:none}
+.d{stroke:#0b5cad;stroke-width:1.5;fill:none}
+.c{stroke:#8a6d00;stroke-width:1.2;fill:none;stroke-dasharray:5 3}
+.lab{font-size:10.5px;fill:#0b5cad}
+.labc{font-size:10.5px;fill:#8a6d00}
+</style>
+<!-- RAM -->
+<text x="115" y="40" text-anchor="middle" class="tb">RAM · 1 KiB</text>
+<rect x="20" y="50" width="190" height="470" class="box"/>
+<rect x="20" y="50" width="190" height="165" fill="#fbe4e1" stroke="#1b1f24"/>
+<rect x="20" y="215" width="190" height="110" fill="#fdf2d6" stroke="#1b1f24"/>
+<rect x="20" y="325" width="190" height="55" fill="#e2f3e6" stroke="#1b1f24"/>
+<rect x="20" y="380" width="190" height="140" fill="#e3ecfd" stroke="#1b1f24"/>
+<text x="115" y="80" text-anchor="middle" class="tb">Stack</text>
+<text x="115" y="97" text-anchor="middle" class="ts mono">0280–03FF</text>
+<text x="115" y="114" text-anchor="middle" class="ts">frames, grows down from SP=0400</text>
+<text x="115" y="250" text-anchor="middle" class="tb">Heap</text>
+<text x="115" y="267" text-anchor="middle" class="ts mono">0180–027F</text>
+<text x="115" y="284" text-anchor="middle" class="ts">malloc blocks, grows up</text>
+<text x="115" y="350" text-anchor="middle" class="tb">Data</text>
+<text x="115" y="367" text-anchor="middle" class="ts mono">0100–017F · globals</text>
+<text x="115" y="425" text-anchor="middle" class="tb">Text</text>
+<text x="115" y="442" text-anchor="middle" class="ts mono">0000–00FF · code</text>
+<text x="115" y="459" text-anchor="middle" class="ts">read-only: a write traps</text>
+<text x="115" y="540" text-anchor="middle" class="ts">16-bit words, little-endian, even addresses</text>
+<line x1="210" y1="300" x2="240" y2="300" class="w" marker-start="url(#ar)" marker-end="url(#ar)"/>
+
+<!-- bus -->
+<rect x="240" y="50" width="46" height="470" fill="#eef1f4" stroke="#1b1f24" stroke-width="1.4"/>
+<text transform="translate(268,285) rotate(-90)" text-anchor="middle" class="tb">SYSTEM BUS · address 16 · data 16 · read / write</text>
+
+<!-- CPU -->
+<rect x="316" y="16" width="668" height="578" rx="8" class="cpu"/>
+<text x="332" y="38" class="tb">T13 CPU</text>
+<text x="975" y="38" text-anchor="end" class="ts">src/sim/cpu.c</text>
+
+<rect x="340" y="66" width="120" height="50" class="box"/>
+<text x="400" y="88" text-anchor="middle" class="tb">PC</text>
+<text x="400" y="105" text-anchor="middle" class="ts">program counter</text>
+<rect x="340" y="140" width="190" height="40" class="box"/>
+<text x="435" y="157" text-anchor="middle" class="t">next PC</text>
+<text x="435" y="172" text-anchor="middle" class="ts mono">PC+2/+4 | EXT | M[SP]</text>
+<line x1="400" y1="140" x2="400" y2="118" class="w" marker-end="url(#ar)"/>
+<path d="M340,90 H288" class="d" marker-end="url(#ab)"/>
+
+<rect x="500" y="66" width="190" height="50" class="box"/>
+<text x="595" y="86" text-anchor="middle" class="tb">IR</text>
+<text x="595" y="104" text-anchor="middle" class="ts mono">OP | MODE | Ra | Rb (+EXT)</text>
+<path d="M288,56 H595 V64" class="d" marker-end="url(#ab)"/>
+<text x="440" y="51" text-anchor="middle" class="lab">① fetch: instruction word + EXT</text>
+
+<rect x="735" y="60" width="230" height="156" class="box"/>
+<text x="850" y="82" text-anchor="middle" class="tb">CONTROL UNIT</text>
+<text x="850" y="99" text-anchor="middle" class="ts">sim_step(): ② decode</text>
+<text x="750" y="120" class="t">OP → operation</text>
+<text x="750" y="137" class="t">MODE → operand form / condition</text>
+<text x="750" y="154" class="t">Ra, Rb → register select</text>
+<text x="750" y="176" class="t">control bits:</text>
+<text x="750" y="192" class="ts">RegWrite · MemRead · MemWrite</text>
+<text x="750" y="207" class="ts">ALUfn · FlagsWrite · PCload</text>
+<path d="M690,91 H733" class="w" marker-end="url(#ar)"/>
+
+<!-- control bits (dashed) -->
+<path d="M760,216 V236 H300" class="c"/>
+<path d="M300,236 V236" class="c"/>
+<path d="M430,236 V256" class="c" marker-end="url(#ag)"/>
+<path d="M690,236 V256" class="c" marker-end="url(#ag)"/>
+<path d="M470,236 V182" class="c" marker-end="url(#ag)"/>
+<path d="M300,236 H290" class="c" marker-end="url(#ag)"/>
+<text x="560" y="230" text-anchor="middle" class="labc">control bits</text>
+
+<rect x="340" y="258" width="180" height="246" class="box"/>
+<text x="430" y="280" text-anchor="middle" class="tb">REGISTERS</text>
+<text x="352" y="304" class="t mono">R0</text><text x="400" y="304" class="ts">accumulator</text>
+<text x="352" y="326" class="t mono">R1–R3</text><text x="400" y="326" class="ts">scratch</text>
+<text x="352" y="348" class="t mono">R4–R12</text><text x="400" y="348" class="ts">general</text>
+<text x="352" y="370" class="t mono">R13</text><text x="400" y="370" class="ts">FP frame pointer</text>
+<text x="352" y="392" class="t mono">R14</text><text x="400" y="392" class="ts">SP stack pointer</text>
+<text x="352" y="414" class="t mono">R15</text><text x="400" y="414" class="ts">reserved</text>
+<text x="430" y="446" text-anchor="middle" class="ts">16 × 16 bits</text>
+<path d="M340,470 H288" class="d" marker-end="url(#ab)"/>
+<text x="346" y="490" class="lab">← address / store data</text>
+
+<rect x="575" y="258" width="150" height="82" class="box"/>
+<text x="650" y="280" text-anchor="middle" class="tb">SOURCE MUX</text>
+<text x="650" y="298" text-anchor="middle" class="ts mono">Rb | #EXT</text>
+<text x="650" y="314" text-anchor="middle" class="ts mono">M[Rb] | M[Rb+EXT]</text>
+<text x="650" y="330" text-anchor="middle" class="ts">operand s (MODE)</text>
+<path d="M520,300 H573" class="w" marker-end="url(#ar)"/>
+<text x="546" y="294" text-anchor="middle" class="ts">Rb</text>
+<path d="M620,116 V256" class="w" marker-end="url(#ar)"/>
+<text x="626" y="200" class="ts">EXT</text>
+<path d="M620,160 H532" class="w" marker-end="url(#ar)"/>
+<text x="575" y="154" text-anchor="middle" class="ts">jump target</text>
+<path d="M288,560 H760 V320 H727" class="d" marker-end="url(#ab)"/>
+<text x="768" y="500" class="lab">memory</text>
+<text x="768" y="514" class="lab">operand</text>
+
+<polygon points="560,372 740,372 705,470 595,470" class="box"/>
+<text x="650" y="398" text-anchor="middle" class="tb">ALU  ③</text>
+<text x="650" y="418" text-anchor="middle" class="ts mono">ADD SUB MUL DIV</text>
+<text x="650" y="434" text-anchor="middle" class="ts mono">AND OR XOR SHL SHR</text>
+<text x="650" y="452" text-anchor="middle" class="ts">CMP = SUB, flags only</text>
+<path d="M650,340 V370" class="w" marker-end="url(#ar)"/>
+<text x="656" y="360" class="ts">B = s</text>
+<path d="M520,392 H566" class="w" marker-end="url(#ar)"/>
+<text x="540" y="386" text-anchor="middle" class="ts">A = Ra</text>
+<path d="M650,470 V530 H470 V506" class="w" marker-end="url(#ar)"/>
+<text x="560" y="524" text-anchor="middle" class="ts">④ result → Ra</text>
+
+<rect x="810" y="400" width="150" height="52" class="box"/>
+<text x="885" y="422" text-anchor="middle" class="tb">FLAGS</text>
+<text x="885" y="440" text-anchor="middle" class="t mono">Z  N  C</text>
+<path d="M722,420 H808" class="w" marker-end="url(#ar)"/>
+<path d="M885,400 V218" class="w" marker-end="url(#ar)"/>
+<text x="891" y="320" class="ts">jump</text>
+<text x="891" y="333" class="ts">condition</text>
+
+<text x="332" y="582" class="ts">① fetch IR ← M[PC], PC ← PC+2/+4   ② decode   ③ execute (ALU or address)   ④ store (register, memory, PC); every check runs before ④</text>
+</svg>

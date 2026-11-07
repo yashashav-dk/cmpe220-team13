@@ -1,0 +1,26 @@
+<svg viewBox="0 0 860 610" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="program layout">
+<defs>
+<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0,0 L10,5 L0,10 z" fill="#1b1f24"/></marker>
+<marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0,0 L10,5 L0,10 z" fill="#0b5cad"/></marker>
+<marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0,0 L10,5 L0,10 z" fill="#8a6d00"/></marker>
+</defs>
+<style>
+.box{fill:#fff;stroke:#1b1f24;stroke-width:1.4}
+.cpu{fill:#f7f9fb;stroke:#1b1f24;stroke-width:1.6}
+.t{font-size:12px;fill:#1b1f24}
+.tb{font-size:13px;font-weight:bold;fill:#1b1f24}
+.ts{font-size:10.5px;fill:#57606a}
+.mono{font-family:Menlo,monospace}
+.w{stroke:#1b1f24;stroke-width:1.5;fill:none}
+.d{stroke:#0b5cad;stroke-width:1.5;fill:none}
+.c{stroke:#8a6d00;stroke-width:1.2;fill:none;stroke-dasharray:5 3}
+.lab{font-size:10.5px;fill:#0b5cad}
+.labc{font-size:10.5px;fill:#8a6d00}
+</style>
+<rect x="230" y="450.0" width="170" height="140.0" fill="#e3ecfd" stroke="#1b1f24" stroke-width="1.4"/><text x="315" y="525.0" text-anchor="middle" class="tb">Text</text><text x="220" y="594.0" text-anchor="end" class="ts mono">0000</text><rect x="230" y="380.0" width="170" height="70.0" fill="#e2f3e6" stroke="#1b1f24" stroke-width="1.4"/><text x="315" y="420.0" text-anchor="middle" class="tb">Data</text><text x="220" y="454.0" text-anchor="end" class="ts mono">0100</text><rect x="230" y="240.0" width="170" height="140.0" fill="#fdf2d6" stroke="#1b1f24" stroke-width="1.4"/><text x="315" y="315.0" text-anchor="middle" class="tb">Heap</text><text x="220" y="384.0" text-anchor="end" class="ts mono">0180</text><rect x="230" y="30.0" width="170" height="210.0" fill="#fbe4e1" stroke="#1b1f24" stroke-width="1.4"/><text x="315" y="140.0" text-anchor="middle" class="tb">Stack</text><text x="220" y="244.0" text-anchor="end" class="ts mono">0280</text><text x="220" y="34.0" text-anchor="end" class="ts mono">0400</text><rect x="230" y="520.0" width="22" height="70.0" fill="#0b5cad" opacity="0.55"/><rect x="230" y="30.0" width="22" height="21.9" fill="#c5221f" opacity="0.55"/><path d="M402,590.0 L440,588.0 H452" stroke="#0b5cad" fill="none" stroke-width="1"/><text x="456" y="592.0" class="t" fill="#0b5cad" style="fill:#0b5cad">main(): 0000–0033</text><path d="M402,561.6 L440,559.6 H452" stroke="#0b5cad" fill="none" stroke-width="1"/><text x="456" y="563.6" class="t" fill="#0b5cad" style="fill:#0b5cad">fact(): 0034–007F</text><path d="M402,450.0 L440,448.0 H452" stroke="#1e7a34" fill="none" stroke-width="1"/><text x="456" y="452.0" class="t" fill="#1e7a34" style="fill:#1e7a34">n @ 0100</text><path d="M402,448.9 L440,431.9 H452" stroke="#1e7a34" fill="none" stroke-width="1"/><text x="456" y="435.9" class="t" fill="#1e7a34" style="fill:#1e7a34">result @ 0102</text><path d="M402,447.8 L440,415.8 H452" stroke="#1e7a34" fill="none" stroke-width="1"/><text x="456" y="419.8" class="t" fill="#1e7a34" style="fill:#1e7a34">heap_top @ 0104</text><path d="M402,380.0 L440,378.0 H452" stroke="#8a6d00" fill="none" stroke-width="1"/><text x="456" y="382.0" class="t" fill="#8a6d00" style="fill:#8a6d00">malloc block @ 0180 (bump pointer heap_top)</text><path d="M402,51.9 L440,49.9 H452" stroke="#c5221f" fill="none" stroke-width="1"/><text x="456" y="53.9" class="t" fill="#c5221f" style="fill:#c5221f">deepest frame @ 03D8; 5 frames</text><path d="M402,34.4 L440,32.4 H452" stroke="#c5221f" fill="none" stroke-width="1"/><text x="456" y="36.4" class="t" fill="#c5221f" style="fill:#c5221f">first frame @ 03F8 (8 bytes)</text><path d="M150,40.0 V170.0" class="w" marker-end="url(#ar)"/><text x="140" y="91.2" text-anchor="end" class="ts">stack grows down</text><text x="140" y="105.2" text-anchor="end" class="ts">from SP = 0400</text><path d="M150,371.2 V283.8" class="w" marker-end="url(#ar)"/><text x="140" y="327.5" text-anchor="end" class="ts">heap grows up</text><text x="140" y="520.0" text-anchor="end" class="ts">entry: main @ 0000</text>
+<rect x="660" y="140" width="14" height="10" fill="#0b5cad" opacity="0.55"/><text x="680" y="149" class="ts">code in use</text>
+<rect x="660" y="158" width="14" height="10" fill="#c5221f" opacity="0.55"/><text x="680" y="167" class="ts">stack in use, deepest call</text>
+</svg>
