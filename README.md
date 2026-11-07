@@ -2,14 +2,64 @@
 
 A small 16-bit CPU of our own design, with the C tools to assemble, run and print programs for it.
 
-Course project of Team 13 (Yashashav Devalapalli Kamalraj, Sai Karan Akula, Manoj Konda) for CMPE 220 System Software, San José State University, Fall 2026. It is open source (MIT, see [`LICENSE`](LICENSE)) as a learning resource. If you are taking this course, follow your instructor's academic integrity rules and do not submit this work as your own.
+Course project of Team 13 (Yashashav Devalapalli Kamalraj, Sai Karan Akula, Manoj Konda) for CMPE 220 System Software, San Jose State University, Fall 2026. It is open source (MIT, see [`LICENSE`](LICENSE)) as a learning resource. If you are taking this course, follow your instructor's academic integrity rules and do not submit this work as your own.
 
 | Tool | Does | Charter owner | Status |
 |---|---|---|---|
 | `isa.c` (shared) | encode / decode / disassemble one instruction | Yashashav | done, tested |
-| `t13as` | assembly → memory image + listing | Yashashav | done, tested |
-| `t13sim` | load image → run → execution trace | Sai Karan | done, tested |
-| `t13view` | trace → memory tables for the report | Manoj | done, tested |
+| `t13as` | assembly to memory image + listing | Yashashav | done, tested |
+| `t13sim` | load image, run, produce execution trace | Sai Karan | done, tested |
+| `t13view` | trace to memory tables for the report | Manoj | done, tested |
+
+## CPU Architecture
+
+The T13 is a 16-bit CPU with 16 registers, a three-flag ALU, and a four-stage instruction cycle (fetch, decode, execute, store). The datapath connects RAM through a system bus to the register file, source mux, ALU, and control unit:
+
+<p align="center">
+  <img src="docs/images/cpu_datapath.svg" alt="T13 CPU datapath diagram" width="800"/>
+</p>
+
+### Instruction Format
+
+Every instruction is a 16-bit word split into four 4-bit fields (OP, MODE, Ra, Rb). Some modes add a second 16-bit EXT word for constants, offsets, or addresses:
+
+<p align="center">
+  <img src="docs/images/instruction_format.svg" alt="Instruction word format" width="650"/>
+</p>
+
+## Memory Layout
+
+Programs run in a 1 KiB address space divided into four segments: Text (code), Data (globals), Heap (grows up), and Stack (grows down). Here is the layout for the recursive factorial program:
+
+<p align="center">
+  <img src="docs/images/memory_layout.svg" alt="Program memory layout" width="650"/>
+</p>
+
+### Stack Frame Structure
+
+Each function call creates an 8-byte (4-word) stack frame. The frame holds the return value slot, the argument, the return address pushed by `CALL`, and the saved frame pointer:
+
+<p align="center">
+  <img src="docs/images/stack_frame.svg" alt="Stack frame structure" width="650"/>
+</p>
+
+## Project Reports
+
+The project report PDFs are saved in [`report/`](report/):
+
+- **Part 1: CPU Design and Programs**: [`report/Team13_Part1_CPU_Design.pdf`](report/Team13_Part1_CPU_Design.pdf)
+  - 16-bit T13 ISA specification, encoding tables, CPU architecture, and datapath diagram
+  - Assembler design (`t13as`), simulator engine (`t13sim`), and execution traces
+  - Program A (8^2 by repeated multiplication) and Program B (8! iterative factorial) with full memory waterfalls and grids
+- **Part 2: Program Layout, ABI and Recursion**: [`report/Team13_Part2_Program_Layout.pdf`](report/Team13_Part2_Program_Layout.pdf)
+  - 1 KiB memory segmentation layout (Text, Data, Heap, Stack) and 4-word frame structure (`docs/abi.md`)
+  - Subroutine calling sequence (`CALL` / `RET`) and frame pointer management
+  - Recursive factorial program (`recfact.s`, fact(5) = 120) with step-by-step stack frame dumps and memory segment snapshots
+
+To build the report PDFs from source:
+```sh
+make report
+```
 
 ## Quick start
 
@@ -55,8 +105,8 @@ Add `--html` for the report's HTML tables. Exit codes for all three tools: 0 suc
 | File | Part | What it computes | Expected result |
 |---|---|---|---|
 | `programs/power.s` | 1, Program A (written in assembly) | 8² = BASE^EXP by repeated multiplication | `M[result] = 0x0040` (64), 17 instructions |
-| `programs/fact.c` → `programs/fact.s` | 1, Program B (C translated by hand) | 8! in a loop inside a function called from main | `M[result] = 0x9D80` (40320), 57 instructions |
-| `programs/recfact.c` → `programs/recfact.s` | 2 (main + recursive function) | fact(5), answer stored in a heap block | `M[M[result]] = 0x0078` (120), 112 instructions, 5 stack frames |
+| `programs/fact.c` / `programs/fact.s` | 1, Program B (C translated by hand) | 8! in a loop inside a function called from main | `M[result] = 0x9D80` (40320), 57 instructions |
+| `programs/recfact.c` / `programs/recfact.s` | 2 (main + recursive function) | fact(5), answer stored in a heap block | `M[M[result]] = 0x0078` (120), 112 instructions, 5 stack frames |
 
 `tests/programs.sh` compiles each `.c` with the host compiler and checks that it prints exactly what `t13sim` leaves in memory, so the hand translation is checked on every run.
 
@@ -78,7 +128,7 @@ src/sim/               t13sim:  load.c (loader) cpu.c (fetch/decode/execute/stor
 src/view/              t13view: read.c (trace reader) render.c (views) main.c
 programs/              example programs, .s and the .c they were translated from
 tests/                 unit tests (test_*.c), golden.sh, programs.sh, golden/ expected outputs
-report/                build.py + report.css: the report PDFs, generated from the tools' output
+report/                build.py + report.css: the report PDFs, built from tool outputs
 .github/workflows/     CI
 ```
 
