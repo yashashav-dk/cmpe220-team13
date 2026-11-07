@@ -27,7 +27,7 @@ jobs:
           # On a private repo, macOS minutes count 10x against the free quota.
           - { os: macos-latest, cc: clang }
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Compiler
         run: ${{ matrix.cc }} --version
       - name: Build
