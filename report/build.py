@@ -29,9 +29,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 REPO = "https://github.com/yashashav-dk/cmpe220-team13"
 TEAM = [
-    ("Yashashav Devalapalli Kamalraj", "yashashav-dk"),
-    ("Sai Karan Akula", "karanAkula"),
     ("Manoj Konda", "kmanoj03"),
+    ("Sai Karan Akula", "karanAkula"),
+    ("Yashashav Devalapalli Kamalraj", "yashashav-dk"),
 ]
 esc = html.escape
 SAI, MANOJ = "Sai Karan", "Manoj"
@@ -633,23 +633,23 @@ def contrib_table():
     """Same three areas for every member, as split in the team plan. A teammate's
     area ends in the tbc() marker until that teammate confirms it."""
     rows = [
-        ("Yashashav Devalapalli Kamalraj",
-         "Repository and MIT license. ISA v1.0 <code>docs/isa.md</code>, opcode table <code>isa_ops.def</code>, codec "
-         "<code>isa.c</code> with 561 checks; assembler <code>t13as</code> with listing and manual <code>docs/asm.md</code>, "
-         "931 checks and golden files; Program A: 8² in T13 assembly.",
-         "§2 instruction encoding table; §3 Program A.",
-         "§3 executable loaded into memory; put the Part 2 PDF together."),
-        ("Sai Karan Akula",
-         "Reviewed and approved ISA v1.0 (Nov 3). Image format <code>docs/image.md</code>, stack-frame layout <code>docs/abi.md</code>, "
-         f"simulator <code>t13sim</code> (loader and CPU), Program B: 8! from C to T13 assembly. {tbc(SAI)}",
-         f"§1 CPU diagram; §4 Program B; put the Part 1 PDF together. {tbc(SAI)}",
-         f"§1 program-layout and stack-frame diagrams; §2 calling sequence; §4 CALL/RET snapshots and stack checks. {tbc(SAI)}"),
         ("Manoj Konda",
          "Trace format <code>docs/trace.md</code> and the hand-written golden traces <code>halt.trc</code> and <code>power.trc</code> "
          "(the simulator's acceptance tests); CI on Linux gcc/clang and macOS clang (PR #3). Repository layout and <code>Makefile</code>, "
          f"viewer <code>t13view</code>, the recursive Part 2 program <code>recfact</code>. {tbc(MANOJ)}",
          f"§3 and §4 memory tables and their legend, the appendix; title page and page-number template. {tbc(MANOJ)}",
          f"§2 <code>recfact</code> C next to assembly; §4 four-segment view with stack frames, one snapshot per call and return. {tbc(MANOJ)}"),
+        ("Sai Karan Akula",
+         "Reviewed and approved ISA v1.0 (Nov 3). Image format <code>docs/image.md</code>, stack-frame layout <code>docs/abi.md</code>, "
+         f"simulator <code>t13sim</code> (loader and CPU), Program B: 8! from C to T13 assembly. {tbc(SAI)}",
+         f"§1 CPU diagram; §4 Program B; put the Part 1 PDF together. {tbc(SAI)}",
+         f"§1 program-layout and stack-frame diagrams; §2 calling sequence; §4 CALL/RET snapshots and stack checks. {tbc(SAI)}"),
+        ("Yashashav Devalapalli Kamalraj",
+         "Repository and MIT license. ISA v1.0 <code>docs/isa.md</code>, opcode table <code>isa_ops.def</code>, codec "
+         "<code>isa.c</code> with 561 checks; assembler <code>t13as</code> with listing and manual <code>docs/asm.md</code>, "
+         "931 checks and golden files; Program A: 8² in T13 assembly.",
+         "§2 instruction encoding table; §3 Program A.",
+         "§3 executable loaded into memory; put the Part 2 PDF together."),
     ]
     body = "".join(f"<tr><td>{esc(n)}</td><td>{c}</td><td>{p1}</td><td>{p2}</td></tr>" for n, c, p1, p2 in rows)
     return ("<figure class='tbl keep'><table class='facts'><thead><tr><th style='width:16%'>Member</th><th style='width:40%'>Code and documents</th>"

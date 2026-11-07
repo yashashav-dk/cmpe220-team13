@@ -2,7 +2,7 @@
 
 A small 16-bit CPU of our own design, with the C tools to assemble, run and print programs for it.
 
-Course project of Team 13 (Yashashav Devalapalli Kamalraj, Sai Karan Akula, Manoj Konda) for CMPE 220 System Software, San Jose State University, Fall 2026. It is open source (MIT, see [`LICENSE`](LICENSE)) as a learning resource. If you are taking this course, follow your instructor's academic integrity rules and do not submit this work as your own.
+Course project of Team 13 (Manoj Konda, Sai Karan Akula, Yashashav Devalapalli Kamalraj) for CMPE 220 System Software, San Jose State University, Fall 2026. It is open source (MIT, see [`LICENSE`](LICENSE)) as a learning resource. If you are taking this course, follow your instructor's academic integrity rules and do not submit this work as your own.
 
 | Tool | Does | Charter owner | Status |
 |---|---|---|---|
