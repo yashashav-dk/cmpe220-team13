@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build-test:
+    name: ${{ matrix.os }} / ${{ matrix.cc }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, cc: gcc }
+          - { os: ubuntu-latest, cc: clang }
+          # On a private repo, macOS minutes count 10x against the free quota.
+          - { os: macos-latest, cc: clang }
+    steps:
+      - uses: actions/checkout@v5
+      - name: Compiler
+        run: ${{ matrix.cc }} --version
+      - name: Build
+        run: make CC=${{ matrix.cc }}
+      - name: Test
+        run: make test CC=${{ matrix.cc }}
