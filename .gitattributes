@@ -1,0 +1,4 @@
+# LF line endings on every OS, Windows included. The image and trace formats
+# are LF text, the golden files are compared byte for byte, and the shell
+# scripts break if a CR is added.
+* text=auto eol=lf
