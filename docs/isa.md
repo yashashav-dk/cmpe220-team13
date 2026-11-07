@@ -1,6 +1,6 @@
-# T13 ISA — specification (draft for team review)
+# T13 ISA — specification
 
-Status: **draft v0.1, 2026-11-02.** Follows the ISA proposal in the team plan (Oct 29). Open points are listed in §9. Once the team agrees, change it only by PR.
+Status: **v1.0, approved by the team 2026-11-03.** Follows the ISA proposal in the team plan (Oct 29). Change it only by PR, with a heads-up to the other two. Open points are listed in §9.
 
 Machine-readable source of truth: [`include/isa_ops.def`](../include/isa_ops.def). Shared codec: [`include/isa.h`](../include/isa.h), [`src/common/isa.c`](../src/common/isa.c). Every example encoding below was produced by that codec, not typed by hand.
 
@@ -155,8 +155,8 @@ The simulator stops with an error if anything writes into Text or SP drops below
 
 ## 9. Open points
 
-1. **XOR vs NOT.** The Oct 21 board (Canvas class notes, "20261021 ISA Design 01") crossed out XOR (with NOR, NEG and PRC) and kept `OR / AND / NOT`. This draft keeps the team plan's XOR at OP 8, with `NOT` as a pseudo-op. The alternative is OP 8 = `NOT Ra` (mode 0 only, `80a0`). Team to decide.
-2. **I/O.** The Oct 21 board crossed out INPUT and OUTPUT (with PUSH, POP, INC, DEC). The Oct 28 board ("20261028 Input Output 01") lists "I/O special via instruction: Input, Output" under the ISA table. This draft has no I/O: results stay in a Data word. If the instructor wants I/O, OP `E` takes it (`E0a0 xxxx` = `IN Ra, port`, `E1a0 xxxx` = `OUT port, Ra`). On the list of questions for the instructor.
+1. **XOR vs NOT: resolved 2026-11-03.** The Oct 21 board (Canvas class notes, "20261021 ISA Design 01") crossed out XOR (with NOR, NEG and PRC) and kept `OR / AND / NOT`. The team kept XOR at OP 8, with `NOT` as an assembler pseudo-op (§7).
+2. **I/O.** The Oct 21 board crossed out INPUT and OUTPUT (with PUSH, POP, INC, DEC). The Oct 28 board ("20261028 Input Output 01") lists "I/O special via instruction: Input, Output" under the ISA table. v1.0 has no I/O: results stay in a Data word. If the instructor wants I/O, OP `E` takes it (`E0a0 xxxx` = `IN Ra, port`, `E1a0 xxxx` = `OUT port, Ra`). On the list of questions for the instructor.
 3. **Memory printout format** (waterfall vs full block per step) is not confirmed with the instructor yet.
 
 **Why a 4-bit MODE field? (board homework, Oct 21: "can we reserve 1 bit instead of 2 bits to distinguish address modes?")**
